@@ -1,6 +1,6 @@
 <p align="center"><br><img src="https://user-images.githubusercontent.com/236501/85893648-1c92e880-b7a8-11ea-926d-95355b8175c7.png" width="128" height="128" /></p>
 <h3 align="center">Generic OAuth 2</h3>
-<p align="center"><strong><code>@danaabhi/generic-oauth2</code></strong></p>
+<p align="center"><strong><code>@danaabhi/capacitor-oauth2</code></strong></p>
 <p align="center">
   Generic Capacitor OAuth 2 client plugin.
 </p>
@@ -8,10 +8,10 @@
 <p align="center">
   <img src="https://img.shields.io/maintenance/yes/2024?style=flat-square" />
    <a href="https://github.com/capacitor-community/generic-oauth2/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/capacitor-community/generic-oauth2/ci.yml?branch=main&style=flat-square" /></a>
-  <a href="https://www.npmjs.com/package/@danaabhi/generic-oauth2"><img src="https://img.shields.io/npm/l/@danaabhi/generic-oauth2?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@danaabhi/capacitor-oauth2"><img src="https://img.shields.io/npm/l/@danaabhi/capacitor-oauth2?style=flat-square" /></a>
 <br>
-  <a href="https://www.npmjs.com/package/@danaabhi/generic-oauth2"><img src="https://img.shields.io/npm/dw/@danaabhi/generic-oauth2?style=flat-square" /></a>
-  <a href="https://www.npmjs.com/package/@danaabhi/generic-oauth2"><img src="https://img.shields.io/npm/v/@danaabhi/generic-oauth2?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@danaabhi/capacitor-oauth2"><img src="https://img.shields.io/npm/dw/@danaabhi/capacitor-oauth2?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@danaabhi/capacitor-oauth2"><img src="https://img.shields.io/npm/v/@danaabhi/capacitor-oauth2?style=flat-square" /></a>
 </p>
 
 ## Introduction
@@ -21,7 +21,7 @@ This is a **generic OAuth 2 client** plugin. It lets you configure the oauth par
 ## Installation
 
 ```bash
-npm install @danaabhi/generic-oauth2
+npm install @danaabhi/capacitor-oauth2
 npx cap sync
 ```
 
@@ -89,7 +89,7 @@ That flow should only be used on the backend (server).
 ### Use it
 
 ```typescript
-import { GenericOAuth2 } from '@danaabhi/generic-oauth2';
+import { GenericOAuth2 } from '@danaabhi/capacitor-oauth2';
 
 @Component({
   template:
@@ -478,7 +478,7 @@ In Angular do sth like
 ```typescript
 import { Component, OnInit } from '@angular/core';
 import { Device, DeviceInfo } from '@capacitor/device';
-import { GenericOAuth2 } from '@danaabhi/generic-oauth2';
+import { GenericOAuth2 } from '@danaabhi/capacitor-oauth2';
 
 @Component({
   templateUrl: './siwa.component.html',
@@ -539,7 +539,7 @@ They share the same core features and therefore the plugin should work either wa
 import {
   OAuth2AuthenticateOptions,
   GenericOAuth2,
-} from '@danaabhi/generic-oauth2';
+} from '@danaabhi/capacitor-oauth2';
 
 export class AuthService {
   getAzureB2cOAuth2Options(): OAuth2AuthenticateOptions {
@@ -578,7 +578,7 @@ Try to experiment with the config until Azure includes everything you need in th
 <summary>A configuration with custom scopes might look like this:</summary>
 
 ```typescript
-import {GenericOAuth2} from "@danaabhi/generic-oauth2";
+import {GenericOAuth2} from "@danaabhi/capacitor-oauth2";
 
   getAzureB2cOAuth2Options(): OAuth2AuthenticateOptions {
     return {
@@ -614,7 +614,7 @@ import {GenericOAuth2} from "@danaabhi/generic-oauth2";
 <summary>Other configs that works in prior versions</summary>
 
 ```typescript
-import {GenericOAuth2} from "@danaabhi/generic-oauth2";
+import {GenericOAuth2} from "@danaabhi/capacitor-oauth2";
 
 azureLogin() {
   GenericOAuth2.authenticate({
@@ -645,7 +645,7 @@ azureLogin() {
 ```
 
 ```typescript
-import {GenericOAuth2} from "@danaabhi/generic-oauth2";
+import {GenericOAuth2} from "@danaabhi/capacitor-oauth2";
 
 azureLogin() {
   GenericOAuth2.authenticate({
@@ -782,7 +782,7 @@ See this [example repo](https://github.com/loonix/capacitor-oauth2-azure-example
 #### PWA
 
 ```typescript
-import {GenericOAuth2} from "@danaabhi/generic-oauth2";
+import {GenericOAuth2} from "@danaabhi/capacitor-oauth2";
 
 googleLogin() {
     GenericOAuth2.authenticate({
@@ -828,7 +828,7 @@ See [iOS Default Config](#ios-default-config)
 #### PWA
 
 ```typescript
-import {GenericOAuth2} from "@danaabhi/generic-oauth2";
+import {GenericOAuth2} from "@danaabhi/capacitor-oauth2";
 
 facebookLogin() {
     let fbApiVersion = "2.11";
@@ -1027,7 +1027,7 @@ install! 'cocoapods', :disable_input_output_paths => true
 def capacitor_pods
   pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
-  pod 'CapacitorCommunityGenericOauth2', :path => '../../node_modules/@danaabhi/generic-oauth2'
+  pod 'CapacitorCommunityGenericOauth2', :path => '../../node_modules/@danaabhi/capacitor-oauth2'
   # core plugins
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorDevice', :path => '../../node_modules/@capacitor/device'
