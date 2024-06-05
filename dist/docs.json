@@ -7,7 +7,7 @@
     "methods": [
       {
         "name": "authenticate",
-        "signature": "(options: OAuth2AuthenticateOptions) => any",
+        "signature": "(options: OAuth2AuthenticateOptions) => Promise<any>",
         "parameters": [
           {
             "name": "options",
@@ -15,7 +15,7 @@
             "type": "OAuth2AuthenticateOptions"
           }
         ],
-        "returns": "any",
+        "returns": "Promise<any>",
         "tags": [
           {
             "name": "param",
@@ -34,7 +34,7 @@
       },
       {
         "name": "refreshToken",
-        "signature": "(options: OAuth2RefreshTokenOptions) => any",
+        "signature": "(options: OAuth2RefreshTokenOptions) => Promise<any>",
         "parameters": [
           {
             "name": "options",
@@ -42,7 +42,7 @@
             "type": "OAuth2RefreshTokenOptions"
           }
         ],
-        "returns": "any",
+        "returns": "Promise<any>",
         "tags": [
           {
             "name": "param",
@@ -61,7 +61,7 @@
       },
       {
         "name": "logout",
-        "signature": "(options: OAuth2AuthenticateOptions, id_token?: string | undefined) => any",
+        "signature": "(options: OAuth2AuthenticateOptions, id_token?: string | undefined) => Promise<boolean>",
         "parameters": [
           {
             "name": "options",
@@ -74,7 +74,7 @@
             "type": "string | undefined"
           }
         ],
-        "returns": "any",
+        "returns": "Promise<boolean>",
         "tags": [
           {
             "name": "param",
@@ -168,7 +168,7 @@
         {
           "name": "customHandlerClass",
           "tags": [],
-          "docs": "Some oauth provider especially Facebook forces us to use their SDK for apps.\n\nProvide a class name implementing the 'CapacitorCommunityGenericOAuth2.OAuth2CustomHandler' protocol.",
+          "docs": "Some oauth provider especially Facebook forces us to use their SDK for apps.\r\n\r\nProvide a class name implementing the 'CapacitorCommunityGenericOAuth2.OAuth2CustomHandler' protocol.",
           "complexTypes": [],
           "type": "string | undefined"
         },
@@ -198,14 +198,14 @@
         {
           "name": "siwaUseScope",
           "tags": [],
-          "docs": "If true the iOS 13+ feature Sign in with Apple (SiWA) try to build the scope from the standard \"scope\" parameter.\n\nIf false scope is set to email and fullName.",
+          "docs": "If true the iOS 13+ feature Sign in with Apple (SiWA) try to build the scope from the standard \"scope\" parameter.\r\n\r\nIf false scope is set to email and fullName.",
           "complexTypes": [],
           "type": "boolean | undefined"
         },
         {
           "name": "customHandlerClass",
           "tags": [],
-          "docs": "Some oauth provider especially Facebook forces us to use their SDK for apps.\n\nProvide a class name implementing the 'CapacitorCommunityGenericOAuth2.OAuth2CustomHandler' protocol.",
+          "docs": "Some oauth provider especially Facebook forces us to use their SDK for apps.\r\n\r\nProvide a class name implementing the 'CapacitorCommunityGenericOAuth2.OAuth2CustomHandler' protocol.",
           "complexTypes": [],
           "type": "string | undefined"
         }

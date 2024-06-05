@@ -24,7 +24,7 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
         reject(new Error('ERR_NO_REFRESH_TOKEN'));
         return;
       }
-      if (!this.webOptions.accessTokenEndpoint && !options.accessTokenEndpoint) {
+      if ((!this.webOptions || !this.webOptions.accessTokenEndpoint) && !options.accessTokenEndpoint) {
         reject(new Error('ERR_NO_ACCESS_TOKEN_ENDPOINT'));
         return;
       }

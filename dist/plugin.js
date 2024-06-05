@@ -267,7 +267,7 @@ var capacitorGenericOAuth2 = (function (exports, core) {
                     reject(new Error('ERR_NO_REFRESH_TOKEN'));
                     return;
                 }
-                if (!this.webOptions.accessTokenEndpoint && !options.accessTokenEndpoint) {
+                if ((!this.webOptions || !this.webOptions.accessTokenEndpoint) && !options.accessTokenEndpoint) {
                     reject(new Error('ERR_NO_ACCESS_TOKEN_ENDPOINT'));
                     return;
                 }
