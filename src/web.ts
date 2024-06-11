@@ -42,8 +42,6 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
         reject(new Error('ERR_GENERAL'));
       };
       tokenRequest.open('POST', (this.webOptions && this.webOptions.accessTokenEndpoint) || options.accessTokenEndpoint, true);
-      //tokenRequest.setRequestHeader('accept', 'application/json');
-      //tokenRequest.setRequestHeader('cache-control', 'no-cache');
       tokenRequest.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
       tokenRequest.send(
         WebUtils.getTokenEndpointDataForRefreshToken(
@@ -54,7 +52,7 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
     });
   }
 
-  async authenticate(options: OAuth2AuthenticateOptions): Promise<any> {
+  authenticate(options: OAuth2AuthenticateOptions, successCallback: (response: any) => void, errorCallback: (error: Error) => void): void {
     const windowOptions = WebUtils.buildWindowOptions(options);
 
     // we open the window first to avoid popups being blocked because of
@@ -65,26 +63,27 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
       windowOptions.windowOptions,
     );
 
-    this.webOptions = await WebUtils.buildWebOptions(options);
-    return new Promise<any>((resolve, reject) => {
+    WebUtils.buildWebOptions(options).then((webOptions) => {
+      this.webOptions = webOptions;
+
       // validate
       if (!this.webOptions.appId || this.webOptions.appId.length == 0) {
-        reject(new Error('ERR_PARAM_NO_APP_ID'));
+        errorCallback(new Error('ERR_PARAM_NO_APP_ID'));
       } else if (
         !this.webOptions.authorizationBaseUrl ||
         this.webOptions.authorizationBaseUrl.length == 0
       ) {
-        reject(new Error('ERR_PARAM_NO_AUTHORIZATION_BASE_URL'));
+        errorCallback(new Error('ERR_PARAM_NO_AUTHORIZATION_BASE_URL'));
       } else if (
         !this.webOptions.redirectUrl ||
         this.webOptions.redirectUrl.length == 0
       ) {
-        reject(new Error('ERR_PARAM_NO_REDIRECT_URL'));
+        errorCallback(new Error('ERR_PARAM_NO_REDIRECT_URL'));
       } else if (
         !this.webOptions.responseType ||
         this.webOptions.responseType.length == 0
       ) {
-        reject(new Error('ERR_PARAM_NO_RESPONSE_TYPE'));
+        errorCallback(new Error('ERR_PARAM_NO_RESPONSE_TYPE'));
       } else {
         // init internal control params
         let loopCount = this.loopCount;
@@ -103,7 +102,7 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
             this.closeWindow();
           } else if (this.windowHandle?.closed && !this.windowClosedByPlugin) {
             window.clearInterval(this.intervalId);
-            reject(new Error('USER_CANCELLED'));
+            errorCallback(new Error('USER_CANCELLED'));
           } else {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             let href: string = undefined!;
@@ -147,21 +146,21 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
                         this.webOptions.appId,
                         this.webOptions.pkceCodeVerifier
                       ).then(tokenResponse => {
-                        this.requestResource(tokenResponse.access_token , resolve , reject , authorizationRedirectUrlParamObj , tokenResponse);
+                        this.requestResource(tokenResponse.access_token , successCallback , errorCallback , authorizationRedirectUrlParamObj , tokenResponse);
                       }).catch(error => {
-                        reject(error);
+                        errorCallback(error);
                       });
                       this.closeWindow();
                     } else {
-                      reject(new Error('ERR_NO_AUTHORIZATION_CODE'));
+                      errorCallback(new Error('ERR_NO_AUTHORIZATION_CODE'));
                     }
                     this.closeWindow();
                   } else {
                     // if no accessTokenEndpoint exists request the resource
                     this.requestResource(
                       authorizationRedirectUrlParamObj.access_token,
-                      resolve,
-                      reject,
+                      successCallback,
+                      errorCallback,
                       authorizationRedirectUrlParamObj,
                     );
                   }
@@ -175,7 +174,7 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
                         authorizationRedirectUrlParamObj.state,
                     );
                   }
-                  reject(new Error('ERR_STATES_NOT_MATCH'));
+                  errorCallback(new Error('ERR_STATES_NOT_MATCH'));
                   this.closeWindow();
                 }
               }
@@ -184,6 +183,8 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
           }
         }, this.intervalLength);
       }
+    }).catch((error) => {
+      errorCallback(error);
     });
   }
 
@@ -226,8 +227,8 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
 
   private requestResource(
     accessToken: string,
-    resolve: any,
-    reject: (reason?: any) => void,
+    successCallback: (response: any) => void,
+    errorCallback: (error: Error) => void,
     authorizationResponse: any,
     accessTokenResponse: any = null,
   ) {
@@ -259,9 +260,9 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
             if (logsEnabled) {
               self.doLog(self.MSG_RETURNED_TO_JS, resp);
             }
-            resolve(resp);
+            successCallback(resp);
           } else {
-            reject(new Error(this.statusText));
+            errorCallback(new Error(this.statusText));
           }
           self.closeWindow();
         };
@@ -269,7 +270,7 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
           if (logsEnabled) {
             self.doLog('ERR_GENERAL: ' + this.statusText);
           }
-          reject(new Error('ERR_GENERAL'));
+          errorCallback(new Error('ERR_GENERAL'));
           self.closeWindow();
         };
         request.open('GET', this.webOptions.resourceUrl, true);
@@ -289,7 +290,7 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
             'No accessToken was provided although you configured a resourceUrl. Remove the resourceUrl from the config.',
           );
         }
-        reject(new Error('ERR_NO_ACCESS_TOKEN'));
+        errorCallback(new Error('ERR_NO_ACCESS_TOKEN'));
         this.closeWindow();
       }
     } else {
@@ -304,7 +305,7 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
       if (this.webOptions.logsEnabled) {
         this.doLog(this.MSG_RETURNED_TO_JS, resp);
       }
-      resolve(resp);
+      successCallback(resp);
       this.closeWindow();
     }
   }

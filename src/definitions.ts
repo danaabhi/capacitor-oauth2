@@ -1,16 +1,23 @@
 export interface GenericOAuth2Plugin {
   /**
-   * Authenticate against a OAuth 2 provider.
+   * Authenticate against an OAuth 2 provider.
    * @param {OAuth2AuthenticateOptions} options
-   * @returns {Promise<any>} the resource url response
+   * @param {Function} successCallback The callback to execute upon successful authentication.
+   * @param {Function} errorCallback The callback to execute upon an error.
    */
-  authenticate(options: OAuth2AuthenticateOptions): Promise<any>;
+  authenticate(
+    options: OAuth2AuthenticateOptions,
+    successCallback: (response: any) => void,
+    errorCallback: (error: Error) => void,
+  ): void;
+
   /**
    * Get a new access token based on the given refresh token.
    * @param {OAuth2RefreshTokenOptions} options
    * @returns {Promise<any>} the token endpoint response
    */
   refreshToken(options: OAuth2RefreshTokenOptions): Promise<any>;
+
   /**
    * Logout from the authenticated OAuth 2 provider
    * @param {OAuth2AuthenticateOptions} options Although not all options are needed. We simply reuse the options from authenticate
@@ -64,7 +71,7 @@ export interface OAuth2AuthenticateBaseOptions {
    */
   responseType?: string;
   /**
-   * Url to  which the oauth provider redirects after authentication.
+   * Url to which the oauth provider redirects after authentication.
    *
    * required!
    */

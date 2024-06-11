@@ -1,6 +1,6 @@
 {
   "name": "@danaabhi/capacitor-oauth2",
-  "version": "6.0.2",
+  "version": "6.0.3",
   "description": "Capacitor OAuth 2 client plugin",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
