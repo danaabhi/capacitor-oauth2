@@ -6,14 +6,14 @@ import type {
 } from './definitions';
 import type { WebOptions } from './web-utils';
 import { WebUtils } from './web-utils';
+import { Browser } from '@capacitor/browser';
 
 export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
   private webOptions: WebOptions;
-  private windowHandle: Window | null;
   private intervalId: number;
   private loopCount = 2000;
   private intervalLength = 100;
-  private windowClosedByPlugin: boolean;
+  windowClosedByPlugin: boolean;
 
   /**
    * Get a new access token using an existing refresh token.
@@ -52,111 +52,84 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
     });
   }
 
-  authenticate(options: OAuth2AuthenticateOptions, successCallback: (response: any) => void, errorCallback: (error: Error) => void): void {
+  async authenticate(options: OAuth2AuthenticateOptions, successCallback: (response: any) => void, errorCallback: (error: Error) => void): Promise<void> {
     const windowOptions = WebUtils.buildWindowOptions(options);
 
-    // we open the window first to avoid popups being blocked because of
-    // the asynchronous buildWebOptions call
-    this.windowHandle = window.open(
-      '',
-      windowOptions.windowTarget,
-      windowOptions.windowOptions,
-    );
-
-    WebUtils.buildWebOptions(options).then((webOptions) => {
-      this.webOptions = webOptions;
+    try {
+      this.webOptions = await WebUtils.buildWebOptions(options);
 
       // validate
       if (!this.webOptions.appId || this.webOptions.appId.length == 0) {
         errorCallback(new Error('ERR_PARAM_NO_APP_ID'));
-      } else if (
-        !this.webOptions.authorizationBaseUrl ||
-        this.webOptions.authorizationBaseUrl.length == 0
-      ) {
+        return;
+      }
+      if (!this.webOptions.authorizationBaseUrl || this.webOptions.authorizationBaseUrl.length == 0) {
         errorCallback(new Error('ERR_PARAM_NO_AUTHORIZATION_BASE_URL'));
-      } else if (
-        !this.webOptions.redirectUrl ||
-        this.webOptions.redirectUrl.length == 0
-      ) {
+        return;
+      }
+      if (!this.webOptions.redirectUrl || this.webOptions.redirectUrl.length == 0) {
         errorCallback(new Error('ERR_PARAM_NO_REDIRECT_URL'));
-      } else if (
-        !this.webOptions.responseType ||
-        this.webOptions.responseType.length == 0
-      ) {
+        return;
+      }
+      if (!this.webOptions.responseType || this.webOptions.responseType.length == 0) {
         errorCallback(new Error('ERR_PARAM_NO_RESPONSE_TYPE'));
-      } else {
-        // init internal control params
-        let loopCount = this.loopCount;
-        this.windowClosedByPlugin = false;
-        // open window
-        const authorizationUrl = WebUtils.getAuthorizationUrl(this.webOptions);
-        if (this.webOptions.logsEnabled) {
-          this.doLog('Authorization url: ' + authorizationUrl);
-        }
-        if (this.windowHandle) {
-          this.windowHandle.location.href = authorizationUrl;
-        }
-        // wait for redirect and resolve the
-        this.intervalId = window.setInterval(() => {
-          if (loopCount-- < 0) {
-            this.closeWindow();
-          } else if (this.windowHandle?.closed && !this.windowClosedByPlugin) {
-            window.clearInterval(this.intervalId);
-            errorCallback(new Error('USER_CANCELLED'));
-          } else {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            let href: string = undefined!;
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              href = this.windowHandle!.location.href!;
-            } catch (ignore) {
-              // ignore DOMException: Blocked a frame with origin "http://localhost:4200" from accessing a cross-origin frame.
-            }
+        return;
+      }
 
-            if (
-              href != null &&
-              href.indexOf(this.webOptions.redirectUrl) >= 0
-            ) {
+      // init internal control params
+      let loopCount = this.loopCount;
+      this.windowClosedByPlugin = false;
+
+      // open browser
+      const authorizationUrl = WebUtils.getAuthorizationUrl(this.webOptions);
+      if (this.webOptions.logsEnabled) {
+        this.doLog('Authorization url: ' + authorizationUrl);
+      }
+      
+      await Browser.open({ url: authorizationUrl, windowName: windowOptions.windowTarget });
+
+      // wait for redirect and resolve the
+      this.intervalId = window.setInterval(async () => {
+        if (loopCount-- < 0) {
+          this.closeWindow();
+        } else {
+          try {
+            
+
+            if (authorizationUrl && authorizationUrl.indexOf(this.webOptions.redirectUrl) >= 0) {
               if (this.webOptions.logsEnabled) {
-                this.doLog('Url from Provider: ' + href);
+                this.doLog('Url from Provider: ' + authorizationUrl);
               }
-              const authorizationRedirectUrlParamObj =
-                WebUtils.getUrlParams(href);
+              const authorizationRedirectUrlParamObj = WebUtils.getUrlParams(authorizationUrl);
               if (authorizationRedirectUrlParamObj) {
                 if (this.webOptions.logsEnabled) {
-                  this.doLog(
-                    'Authorization response:',
-                    authorizationRedirectUrlParamObj,
-                  );
+                  this.doLog('Authorization response:', authorizationRedirectUrlParamObj);
                 }
                 window.clearInterval(this.intervalId);
+
                 // check state
-                if (
-                  authorizationRedirectUrlParamObj.state ===
-                  this.webOptions.state
-                ) {
+                if (authorizationRedirectUrlParamObj.state === this.webOptions.state) {
                   if (this.webOptions.accessTokenEndpoint) {
-                    const authorizationCode =
-                      authorizationRedirectUrlParamObj.code;
-                    
+                    const authorizationCode = authorizationRedirectUrlParamObj.code;
+
                     if (authorizationCode) {
-                      this.exchangeAuthorizationCodeForTokens(
-                        authorizationRedirectUrlParamObj.code,
-                        this.webOptions.redirectUrl,
-                        this.webOptions.appId,
-                        this.webOptions.pkceCodeVerifier
-                      ).then(tokenResponse => {
-                        this.requestResource(tokenResponse.access_token , successCallback , errorCallback , authorizationRedirectUrlParamObj , tokenResponse);
-                      }).catch(error => {
+                      try {
+                        const tokenResponse = await this.exchangeAuthorizationCodeForTokens(
+                          authorizationCode,
+                          this.webOptions.redirectUrl,
+                          this.webOptions.appId,
+                          this.webOptions.pkceCodeVerifier
+                        );
+                        this.requestResource(tokenResponse.access_token, successCallback, errorCallback, authorizationRedirectUrlParamObj, tokenResponse);
+                      } catch (error: any) {
                         errorCallback(error);
-                      });
+                      }
                       this.closeWindow();
                     } else {
                       errorCallback(new Error('ERR_NO_AUTHORIZATION_CODE'));
                     }
                     this.closeWindow();
                   } else {
-                    // if no accessTokenEndpoint exists request the resource
                     this.requestResource(
                       authorizationRedirectUrlParamObj.access_token,
                       successCallback,
@@ -166,26 +139,28 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
                   }
                 } else {
                   if (this.webOptions.logsEnabled) {
-                    this.doLog(
-                      'State from web options: ' + this.webOptions.state,
-                    );
-                    this.doLog(
-                      'State returned from provider: ' +
-                        authorizationRedirectUrlParamObj.state,
-                    );
+                    this.doLog('State from web options: ' + this.webOptions.state);
+                    this.doLog('State returned from provider: ' + authorizationRedirectUrlParamObj.state);
                   }
                   errorCallback(new Error('ERR_STATES_NOT_MATCH'));
                   this.closeWindow();
                 }
               }
-              // this is no error no else clause required
             }
+          } catch (ignore) {
+            // ignore any errors
           }
-        }, this.intervalLength);
-      }
-    }).catch((error) => {
+        }
+      }, this.intervalLength);
+    } catch (error: any) {
       errorCallback(error);
-    });
+    }
+  }
+
+  private closeWindow() {
+    window.clearInterval(this.intervalId);
+    Browser.close();
+    this.windowClosedByPlugin = true;
   }
 
   private exchangeAuthorizationCodeForTokens(
@@ -334,15 +309,15 @@ export class GenericOAuth2Web extends WebPlugin implements GenericOAuth2Plugin {
     });
   }
 
-  private closeWindow() {
-    window.clearInterval(this.intervalId);
-    // #164 if the provider's login page is opened in the same tab or window it must not be closed
-    // if (this.webOptions.windowTarget !== "_self") {
-    //     this.windowHandle?.close();
-    // }
-    this.windowHandle?.close();
-    this.windowClosedByPlugin = true;
-  }
+  // private closeWindow() {
+  //   window.clearInterval(this.intervalId);
+  //   // #164 if the provider's login page is opened in the same tab or window it must not be closed
+  //   // if (this.webOptions.windowTarget !== "_self") {
+  //   //     this.windowHandle?.close();
+  //   // }
+  //   this.windowHandle?.close();
+  //   this.windowClosedByPlugin = true;
+  // }
 
   private doLog(msg: string, obj: any = null) {
     console.log('I/Capacitor/GenericOAuth2Plugin: ' + msg, obj);
